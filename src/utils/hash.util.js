@@ -2,13 +2,58 @@ import dayjs from "dayjs";
 import CustomParseFormat from "dayjs/plugin/customParseFormat";
 import { bmvbhash } from "blockhash-core";
 import loadImage from "blueimp-load-image";
-import leven from "leven";
 import distance from "@turf/distance";
 import { point } from "@turf/helpers";
 
 dayjs.extend(CustomParseFormat);
 
 const parseEXIF = (ts) => ts && dayjs(ts, "YYYY:MM:DD HH:mm:ss").toDate();
+
+function hexToBin(hexString) {
+  const hexBinLookup = {
+    0: "0000",
+    1: "0001",
+    2: "0010",
+    3: "0011",
+    4: "0100",
+    5: "0101",
+    6: "0110",
+    7: "0111",
+    8: "1000",
+    9: "1001",
+    a: "1010",
+    b: "1011",
+    c: "1100",
+    d: "1101",
+    e: "1110",
+    f: "1111",
+    A: "1010",
+    B: "1011",
+    C: "1100",
+    D: "1101",
+    E: "1110",
+    F: "1111",
+  };
+  let result = "";
+  for (let i = 0; i < hexString.length; i++) {
+    result += hexBinLookup[hexString[i]];
+  }
+  return result;
+}
+
+const comparePHash = (hash1, hash2) => {
+  const _hash1 = hexToBin(hash1);
+  const _hash2 = hexToBin(hash2);
+  const minLength = Math.min(_hash1.length, _hash2.length);
+  const maxLength = Math.max(_hash1.length, _hash2.length);
+  let similarity = 0;
+  for (let i = 0; i < minLength; i++) {
+    if (_hash1[i] === _hash2[i]) {
+      similarity += 1;
+    }
+  }
+  return similarity / maxLength;
+};
 
 const ConvertDMSToDD = (dms, direction) => {
   try {
@@ -49,15 +94,18 @@ const CleanExif = (data) => {
 export const imgDiff = (i1, i2) => {
   console.log(i1, i2);
   return {
-    leven: leven(i1.blockHash, i2.blockHash),
+    distance: comparePHash(i1.blockHash, i2.blockHash),
     date: Math.abs(
       dayjs(i1.dateCreated).diff(dayjs(i2.dateCreated), "seconds")
     ),
-    geo: distance(
-      point([i1.longitude, i1.latitude]),
-      point([i2.longitude, i2.latitude]),
-      { units: "meters" }
-    ),
+    geo:
+      i1.longitude &&
+      i2.longitude &&
+      distance(
+        point([i1.longitude, i1.latitude]),
+        point([i2.longitude, i2.latitude]),
+        { units: "meters" }
+      ),
   };
 };
 
@@ -85,7 +133,7 @@ export const getBlockHash = async (file) => {
   context.drawImage(bitmap, 0, 0);
   var imageData = context.getImageData(0, 0, bitmap.width, bitmap.height);
 
-  return bmvbhash(imageData, 16);
+  return bmvbhash(imageData, 8);
 };
 
 export const calculateImageMeta = async (file) => {
