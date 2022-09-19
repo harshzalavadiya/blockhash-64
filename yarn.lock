@@ -2092,6 +2092,11 @@ semver@^6.3.0:
   resolved "https://registry.yarnpkg.com/semver/-/semver-6.3.0.tgz#ee0a64c8af5e8ceea67687b133761e1becbd1d3d"
   integrity sha512-b39TBaTSfV6yBrapU89p5fKekE2m/NwnDocOVruQFS1/veMgdzuPcnOM34M6CwxW8jH/lxEa5rBoDeUwu5HHTw==
 
+set-clustering@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/set-clustering/-/set-clustering-1.1.0.tgz#b49bf3161fdb07d43820d95ac1b39d0e9ac283c2"
+  integrity sha512-c8JXoLiSJGDc/BUiRhmph+Qbhte46U7vDWP4zf4msM88/mrQuKhOWabEEtdvQE6iLw9FC20ge5uKKyk7orgUBg==
+
 skmeans@0.9.7:
   version "0.9.7"
   resolved "https://registry.yarnpkg.com/skmeans/-/skmeans-0.9.7.tgz#72670cebb728508f56e29c0e10d11e623529ce5d"

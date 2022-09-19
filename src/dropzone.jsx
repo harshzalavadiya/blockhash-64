@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { calculateImageMeta, imgDiff } from "./utils/hash.util";
+import setClustering from "set-clustering";
 
 export function MyDropzone() {
   const [response, setResponse] = useState([]);
@@ -14,9 +15,10 @@ export function MyDropzone() {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
 
   useEffect(() => {
-    if (response.length >= 2) {
-      setResults(imgDiff(response[0], response[1]));
-    }
+    const cluster = setClustering(response, (imageA, imageB) => {
+      return imgDiff(imageA, imageB);
+    });
+    setResults(cluster.similarGroups(0.5));
   }, [response]);
 
   return (
@@ -26,13 +28,29 @@ export function MyDropzone() {
         {isDragActive ? (
           <p>Drop the files here ...</p>
         ) : (
-          <p>Drop any 2 Images to compare</p>
+          <p>Drop Images to cluster</p>
         )}
       </div>
 
+      {results &&
+        results.map((images, idx) => (
+          <div key={idx}>
+            {images.map((img) => (
+              <span key={img.url}>
+                <img
+                  src={img.url}
+                  className="img"
+                  title={`Date: ${img.dateCreated}\nLocation: ${img.latitude},${img.longitude}`}
+                />
+              </span>
+            ))}
+            <hr />
+          </div>
+        ))}
+
       {response.length > 0 && (
-        <>
-          <h2>Selected Images</h2>
+        <details>
+          <summary>Selected Images</summary>
           <table cellSpacing={0}>
             <thead>
               <tr>
@@ -53,7 +71,7 @@ export function MyDropzone() {
                       {img.blockHash}
                     </div>
                   </td>
-                  <td>{img.dateCreated.toISOString()}</td>
+                  <td>{img.dateCreated?.toISOString()}</td>
                   <td>
                     {img.latitude || "NA"}, {img.longitude || "NA"}
                   </td>
@@ -61,29 +79,7 @@ export function MyDropzone() {
               ))}
             </tbody>
           </table>
-        </>
-      )}
-
-      {results && (
-        <>
-          <h2>Results</h2>
-          <table cellSpacing={0}>
-            <thead>
-              <tr>
-                <td>Similarity</td>
-                <td>Time Difference</td>
-                <td>Location Difference</td>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>{results.distance}/1</td>
-                <td>{results.date} Seconds</td>
-                <td>{response[0].latitude ? results.geo : "-"} Meters</td>
-              </tr>
-            </tbody>
-          </table>
-        </>
+        </details>
       )}
     </div>
   );

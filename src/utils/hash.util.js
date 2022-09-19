@@ -92,21 +92,38 @@ const CleanExif = (data) => {
 };
 
 export const imgDiff = (i1, i2) => {
-  console.log(i1, i2);
-  return {
-    distance: comparePHash(i1.blockHash, i2.blockHash),
-    date: Math.abs(
-      dayjs(i1.dateCreated).diff(dayjs(i2.dateCreated), "seconds")
-    ),
-    geo:
-      i1.longitude &&
-      i2.longitude &&
-      distance(
-        point([i1.longitude, i1.latitude]),
-        point([i2.longitude, i2.latitude]),
-        { units: "meters" }
-      ),
-  };
+  if (
+    i1.dateCreated &&
+    i2.dateCreated &&
+    Math.abs(dayjs(i1.dateCreated).diff(dayjs(i2.dateCreated), "seconds")) < 31
+  ) {
+    console.log("time");
+    return 1;
+  }
+
+  if (
+    i1.longitude &&
+    i2.longitude &&
+    distance(
+      point([i1.longitude, i1.latitude]),
+      point([i2.longitude, i2.latitude]),
+      { units: "meters" }
+    ) < 1
+  ) {
+    console.log("latlng");
+    return 1;
+  }
+
+  if (
+    !i1.dateCreated &&
+    !i1.longitude &&
+    Math.abs(comparePHash(i1.blockHash, i2.blockHash)) > 0.7
+  ) {
+    console.log("phash");
+    return 1;
+  }
+
+  return 0;
 };
 
 export const getExif = (file) => {
